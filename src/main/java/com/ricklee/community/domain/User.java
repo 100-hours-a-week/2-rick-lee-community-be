@@ -29,8 +29,9 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private String nickname;
 
-    @Column(name = "profile_image")
-    private String profileImage;
+    @Column(name = "profile_img")
+    @Lob
+    private byte[] profileImg;
 
     // 양방향 관계 설정 (필요에 따라 주석 해제하여 사용)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -47,24 +48,24 @@ public class User extends BaseTimeEntity {
      * @param email 사용자 이메일 (로그인 ID)
      * @param password 암호화된 비밀번호
      * @param nickname 사용자 닉네임
-     * @param profileImage 프로필 이미지 URL (선택 사항)
+     * @param profileImg 프로필 이미지 데이터 (선택 사항)
      */
     @Builder
-    public User(String email, String password, String nickname, String profileImage) {
+    public User(String email, String password, String nickname, byte[] profileImg) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-        this.profileImage = profileImage;
+        this.profileImg = profileImg;
     }
 
     /**
      * 회원 정보 수정 메서드
      * @param nickname 새로운 닉네임
-     * @param profileImage 새로운 프로필 이미지 URL
+     * @param profileImg 새로운 프로필 이미지 데이터
      */
-    public void updateProfile(String nickname, String profileImage) {
+    public void updateProfile(String nickname, byte[] profileImg) {
         this.nickname = nickname;
-        this.profileImage = profileImage;
+        this.profileImg = profileImg;
     }
 
     /**

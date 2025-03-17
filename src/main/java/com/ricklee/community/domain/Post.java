@@ -26,8 +26,11 @@ public class Post extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "image_url")
-    private String imageUrl;
+    @Column(name = "post_img")
+    @Lob
+    private byte[] postImg;
+
+
 
     @Column(name = "view_count", nullable = false)
     private Integer viewCount = 0;
@@ -46,13 +49,13 @@ public class Post extends BaseTimeEntity {
      * 게시글 생성을 위한 빌더 패턴
      * @param title 게시글 제목
      * @param content 게시글 내용
-     * @param imageUrl 게시글 이미지 URL (선택 사항)
+     * @param postImg 게시글 이미지 데이터 (선택 사항)
      */
     @Builder
-    public Post(String title, String content, String imageUrl) {
+    public Post(String title, String content, byte[] postImg) {
         this.title = title;
         this.content = content;
-        this.imageUrl = imageUrl;
+        this.postImg = postImg;
         this.viewCount = 0;
     }
 
@@ -68,12 +71,12 @@ public class Post extends BaseTimeEntity {
      * 게시글 수정 메서드
      * @param title 수정할 제목
      * @param content 수정할 내용
-     * @param imageUrl 수정할 이미지 URL
+     * @param postImg 수정할 이미지 데이터
      */
-    public void update(String title, String content, String imageUrl) {
+    public void update(String title, String content, byte[] postImg) {
         this.title = title;
         this.content = content;
-        this.imageUrl = imageUrl;
+        this.postImg = postImg;
     }
 
     /**
@@ -101,19 +104,7 @@ public class Post extends BaseTimeEntity {
         like.setPost(this);
     }
 
-    /**
-     * 댓글 수 조회 메서드
-     * @return 댓글 수
-     */
-    public int getCommentCount() {
-        return this.comments.size();
-    }
 
-    /**
-     * 좋아요 수 조회 메서드
-     * @return 좋아요 수
-     */
-    public int getLikeCount() {
-        return this.likes.size();
-    }
+
+
 }
