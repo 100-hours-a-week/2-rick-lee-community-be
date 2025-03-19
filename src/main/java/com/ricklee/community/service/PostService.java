@@ -1,5 +1,6 @@
 package com.ricklee.community.service;
 
+import com.ricklee.community.domain.LikeId;
 import com.ricklee.community.domain.Post;
 import com.ricklee.community.domain.User;
 import com.ricklee.community.dto.PostDetailResponseDto;
@@ -99,7 +100,11 @@ public class PostService {
         Long likeCount = likeRepository.countByPostId(postId);
 
         // 현재 사용자의 좋아요 여부 확인
-        Boolean userLiked = likeRepository.existsByUserIdAndPostId(userId, postId);
+        Boolean userLiked = false;
+        if (userId != null) {
+            LikeId likeId = new LikeId(userId, postId);
+            userLiked = likeRepository.existsById(likeId);
+        }
 
         // DTO로 변환하여 반환
         return new PostDetailResponseDto(post, commentCount, likeCount, userLiked);
@@ -212,23 +217,31 @@ public class PostService {
 
     /**
      * 게시글에 좋아요 추가
-     * @param userId 좋아요를 누른 사용자 ID
-     * @param postId 대상 게시글 ID
-     * @return 생성된 좋아요의 ID
+     * @param userId 사용자 ID
+     * @param postId 게시글 ID
+     * @return 좋아요 수
      */
     @Transactional
     public Long addLike(Long userId, Long postId) {
-        return likeService.addLike(userId, postId);
+        // LikeService를 통해 좋아요 추가
+        likeService.addLike(userId, postId);
+
+        // 좋아요 수 반환
+        return likeRepository.countByPostId(postId);
     }
 
     /**
      * 게시글 좋아요 취소
-     * @param userId 좋아요를 취소한 사용자 ID
-     * @param postId 대상 게시글 ID
-     * @return 삭제된 좋아요의 ID
+     * @param userId 사용자 ID
+     * @param postId 게시글 ID
+     * @return 남은 좋아요 수
      */
     @Transactional
     public Long removeLike(Long userId, Long postId) {
-        return likeService.removeLike(userId, postId);
+        // LikeService를 통해 좋아요 취소
+        likeService.removeLike(userId, postId);
+
+        // 남은 좋아요 수 반환
+        return likeRepository.countByPostId(postId);
     }
 }

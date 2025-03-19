@@ -12,11 +12,15 @@ import com.ricklee.community.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.annotation.PostConstruct;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,12 +40,24 @@ public class UserService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    // SecretKey 객체로 변환된 JWT 시크릿 키
+    private SecretKey jwtSecretKey;
+
     /**
      * 생성자 주입을 통한 의존성 주입
      */
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    /**
+     * 애플리케이션 시작 시 JWT 시크릿 키를 SecretKey 객체로 변환
+     */
+    @PostConstruct
+    public void init() {
+        // 문자열 형태의 시크릿 키를 SecretKey 객체로 변환
+        this.jwtSecretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -183,7 +199,7 @@ public class UserService {
                 .setSubject(userId.toString())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .signWith(jwtSecretKey)  // 생성된 안전한 키 사용
                 .compact();
     }
 
@@ -195,8 +211,9 @@ public class UserService {
      */
     public Long getUserIdFromToken(String token) {
         try {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(jwtSecret)
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(jwtSecretKey)  // 생성된 안전한 키 사용
+                    .build()
                     .parseClaimsJws(token)
                     .getBody();
 

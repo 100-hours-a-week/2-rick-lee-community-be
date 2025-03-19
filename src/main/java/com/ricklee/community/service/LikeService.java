@@ -1,6 +1,7 @@
 package com.ricklee.community.service;
 
 import com.ricklee.community.domain.Like;
+import com.ricklee.community.domain.LikeId;
 import com.ricklee.community.domain.Post;
 import com.ricklee.community.domain.User;
 import com.ricklee.community.dto.LikeStatsDto;
@@ -11,8 +12,6 @@ import com.ricklee.community.repository.PostRepository;
 import com.ricklee.community.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 /**
  * 좋아요 관련 비즈니스 로직을 처리하는 서비스
@@ -37,12 +36,12 @@ public class LikeService {
      * 게시글에 좋아요 추가
      * @param userId 사용자 ID
      * @param postId 게시글 ID
-     * @return 생성된 좋아요의 ID
+     * @return 좋아요 추가 성공 메시지
      * @throws ResourceNotFoundException 사용자 또는 게시글을 찾을 수 없는 경우
      * @throws BusinessException 이미 좋아요를 누른 경우
      */
     @Transactional
-    public Long addLike(Long userId, Long postId) {
+    public String addLike(Long userId, Long postId) {
         // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "id", userId));
@@ -51,48 +50,45 @@ public class LikeService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("post", "id", postId));
 
-        // 이미 좋아요를 눌렀는지 확인
-        if (likeRepository.existsByUserIdAndPostId(userId, postId)) {
+        // 이미 좋아요를 눌렀는지 확인 (복합 키로 직접 조회)
+        LikeId likeId = new LikeId(userId, postId);
+        if (likeRepository.existsById(likeId)) {
             throw new BusinessException("duplicate_like");
         }
 
         // 좋아요 생성
         Like like = Like.createLike(user, post);
-        Like savedLike = likeRepository.save(like);
+        likeRepository.save(like);
 
-        return savedLike.getId();
+        return "좋아요가 추가되었습니다.";
     }
 
     /**
      * 게시글 좋아요 취소
      * @param userId 사용자 ID
      * @param postId 게시글 ID
-     * @return 삭제된 좋아요의 ID
-     * @throws ResourceNotFoundException 사용자, 게시글 또는 좋아요를 찾을 수 없는 경우
+     * @return 좋아요 취소 성공 메시지
+     * @throws ResourceNotFoundException 좋아요를 찾을 수 없는 경우
      */
     @Transactional
-    public Long removeLike(Long userId, Long postId) {
-        // 사용자 조회
+    public String removeLike(Long userId, Long postId) {
+        // 사용자와 게시글 존재 여부 확인
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "id", userId));
 
-        // 게시글 조회
         postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("post", "id", postId));
 
-        // 좋아요 조회
-        Like like = likeRepository.findByUserAndPost(
-                        userRepository.getReferenceById(userId),
-                        postRepository.getReferenceById(postId)
-                )
-                .orElseThrow(() -> new ResourceNotFoundException("like", "postId", postId));
-
-        Long likeId = like.getId();
+        // 복합 키로 직접 삭제
+        LikeId likeId = new LikeId(userId, postId);
+        if (!likeRepository.existsById(likeId)) {
+            throw new ResourceNotFoundException("like", "userId,postId", userId + "," + postId);
+        }
 
         // 좋아요 삭제
-        likeRepository.delete(like);
+        likeRepository.deleteById(likeId);
 
-        return likeId;
+        return "좋아요가 취소되었습니다.";
     }
 
     /**
@@ -115,7 +111,8 @@ public class LikeService {
         // 현재 사용자의 좋아요 여부 확인
         Boolean userLiked = false;
         if (userId != null) {
-            userLiked = likeRepository.existsByUserIdAndPostId(userId, postId);
+            LikeId likeId = new LikeId(userId, postId);
+            userLiked = likeRepository.existsById(likeId);
         }
 
         return new LikeStatsDto(postId, likeCount, userLiked);
@@ -139,6 +136,7 @@ public class LikeService {
      */
     @Transactional(readOnly = true)
     public boolean hasUserLikedPost(Long userId, Long postId) {
-        return likeRepository.existsByUserIdAndPostId(userId, postId);
+        LikeId likeId = new LikeId(userId, postId);
+        return likeRepository.existsById(likeId);
     }
 }
