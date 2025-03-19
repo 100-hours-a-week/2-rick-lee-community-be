@@ -1,14 +1,14 @@
 package com.ricklee.community.domain;
 
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * 댓글 정보를 담는 엔티티
+ */
 @Entity
 @Table(name = "comments")
 @Getter
@@ -30,13 +30,6 @@ public class Comment extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_comment_id")
-    private Comment parentComment;
-
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> childComments = new ArrayList<>();
 
     /**
      * 댓글 생성을 위한 빌더 패턴
@@ -64,36 +57,10 @@ public class Comment extends BaseTimeEntity {
     }
 
     /**
-     * 부모 댓글 설정 (대댓글인 경우)
-     * @param parentComment 부모 댓글
-     */
-    public void setParentComment(Comment parentComment) {
-        this.parentComment = parentComment;
-        parentComment.getChildComments().add(this);
-    }
-
-    /**
      * 댓글 내용 수정 메서드
      * @param content 수정할 내용
      */
     public void updateContent(String content) {
         this.content = content;
-    }
-
-    /**
-     * 대댓글 추가 편의 메서드
-     * @param childComment 추가할 대댓글
-     */
-    public void addChildComment(Comment childComment) {
-        this.childComments.add(childComment);
-        childComment.setParentComment(this);
-    }
-
-    /**
-     * 댓글이 대댓글인지 확인하는 메서드
-     * @return 대댓글 여부
-     */
-    public boolean isChildComment() {
-        return this.parentComment != null;
     }
 }

@@ -45,19 +45,4 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
      * @return 댓글 목록
      */
     List<Comment> findByUserIdOrderByCreatedAtDesc(Long userId);
-
-    /**
-     * 특정 부모 댓글에 달린 모든 대댓글 조회
-     * @param parentCommentId 부모 댓글 ID
-     * @return 대댓글 목록
-     */
-    List<Comment> findByParentCommentId(Long parentCommentId);
-
-    /**
-     * 특정 게시글의 최상위 댓글만 조회 (부모 댓글이 없는 댓글)
-     * @param postId 게시글 ID
-     * @return 최상위 댓글 목록
-     */
-    @Query("SELECT c FROM Comment c WHERE c.post.id = :postId AND c.parentComment IS NULL ORDER BY c.createdAt DESC")
-    List<Comment> findTopLevelCommentsByPostId(@Param("postId") Long postId);
 }

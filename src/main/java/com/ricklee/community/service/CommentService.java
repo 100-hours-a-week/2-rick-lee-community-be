@@ -12,7 +12,6 @@ import com.ricklee.community.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,7 @@ public class CommentService {
      * @param userId 작성자 ID
      * @param requestDto 댓글 작성 요청 정보
      * @return 생성된 댓글의 ID
-     * @throws ResourceNotFoundException 게시글 또는 부모 댓글을 찾을 수 없는 경우
+     * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
     @Transactional
     public Long createComment(Long userId, CommentRequestDto requestDto) {
@@ -63,19 +62,6 @@ public class CommentService {
         comment.setUser(user);
         comment.setPost(post);
 
-        // 대댓글인 경우 부모 댓글 설정
-        if (requestDto.getParentCommentId() != null) {
-            Comment parentComment = commentRepository.findById(requestDto.getParentCommentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("comment", "id", requestDto.getParentCommentId()));
-
-            // 부모 댓글이 같은 게시글에 속하는지 검증
-            if (!parentComment.getPost().getId().equals(post.getId())) {
-                throw new IllegalArgumentException("부모 댓글이 해당 게시글에 속하지 않습니다.");
-            }
-
-            comment.setParentComment(parentComment);
-        }
-
         // 댓글 저장
         Comment savedComment = commentRepository.save(comment);
         return savedComment.getId();
@@ -94,39 +80,13 @@ public class CommentService {
             throw new ResourceNotFoundException("post", "id", postId);
         }
 
-        // 최상위 댓글만 먼저 조회 (대댓글 제외)
-        List<Comment> topLevelComments = commentRepository.findTopLevelCommentsByPostId(postId);
+        // 댓글 조회
+        List<Comment> comments = commentRepository.findByPostIdOrderByCreatedAtDesc(postId);
 
         // 각 댓글을 Map으로 변환하여 반환
-        return topLevelComments.stream()
+        return comments.stream()
                 .map(this::convertCommentToMap)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * 댓글을 Map 형태로 변환 (대댓글 포함)
-     * @param comment 변환할 댓글
-     * @return 변환된 Map
-     */
-    private Map<String, Object> convertCommentToMap(Comment comment) {
-        Map<String, Object> commentMap = new HashMap<>();
-        commentMap.put("comment_id", comment.getId());
-        commentMap.put("user_id", comment.getUser().getId());
-        commentMap.put("post_id", comment.getPost().getId());
-        commentMap.put("comment_body", comment.getContent());
-        commentMap.put("created_at", comment.getCreatedAt());
-        commentMap.put("updated_at", comment.getUpdatedAt());
-
-        // 대댓글 처리
-        List<Map<String, Object>> childComments = new ArrayList<>();
-        if (!comment.getChildComments().isEmpty()) {
-            childComments = comment.getChildComments().stream()
-                    .map(this::convertCommentToMap)
-                    .collect(Collectors.toList());
-            commentMap.put("child_comments", childComments);
-        }
-
-        return commentMap;
     }
 
     /**
@@ -179,8 +139,7 @@ public class CommentService {
             throw new UnauthorizedException("댓글 삭제 권한이 없습니다.");
         }
 
-        // 댓글 삭제 처리
-        // 대댓글이 있는 경우에도 삭제 가능 (JPA의 cascade 옵션에 따라 처리)
+        // 댓글 삭제
         commentRepository.delete(comment);
     }
 
@@ -192,5 +151,22 @@ public class CommentService {
     @Transactional(readOnly = true)
     public Long countCommentsByPostId(Long postId) {
         return commentRepository.countByPostId(postId);
+    }
+
+    /**
+     * 댓글을 Map 형태로 변환
+     * @param comment 변환할 댓글
+     * @return 변환된 Map
+     */
+    private Map<String, Object> convertCommentToMap(Comment comment) {
+        Map<String, Object> commentMap = new HashMap<>();
+        commentMap.put("comment_id", comment.getId());
+        commentMap.put("user_id", comment.getUser().getId());
+        commentMap.put("post_id", comment.getPost().getId());
+        commentMap.put("comment_body", comment.getContent());
+        commentMap.put("created_at", comment.getCreatedAt());
+        commentMap.put("updated_at", comment.getUpdatedAt());
+
+        return commentMap;
     }
 }
