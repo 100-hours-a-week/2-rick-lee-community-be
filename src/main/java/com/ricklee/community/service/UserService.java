@@ -9,6 +9,7 @@ import com.ricklee.community.exception.DuplicateResourceException;
 import com.ricklee.community.exception.ResourceNotFoundException;
 import com.ricklee.community.exception.UnauthorizedException;
 import com.ricklee.community.repository.UserRepository;
+import com.ricklee.community.util.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -33,6 +34,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -46,9 +48,11 @@ public class UserService {
     /**
      * 생성자 주입을 통한 의존성 주입
      */
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     /**
@@ -112,7 +116,7 @@ public class UserService {
         }
 
         // JWT 토큰 생성
-        String token = generateToken(user.getId());
+        String token = jwtUtil.generateToken(user.getId(), "MEMBER");
 
         // 응답 데이터 생성
         Map<String, Object> response = new HashMap<>();
