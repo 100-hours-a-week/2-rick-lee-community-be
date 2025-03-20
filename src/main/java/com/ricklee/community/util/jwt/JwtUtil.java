@@ -1,7 +1,10 @@
 package com.ricklee.community.util.jwt;
 
+import com.ricklee.community.exception.InvalidTokenException;
+import com.ricklee.community.exception.TokenExpiredException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,15 +79,27 @@ public class JwtUtil {
      *
      * @param token JWT 토큰
      * @return 사용자 ID
+     * @throws TokenExpiredException 토큰이 만료된 경우
+     * @throws InvalidTokenException 토큰이 유효하지 않은 경우
      */
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
-        return Long.parseLong(claims.getSubject());
+            return Long.parseLong(claims.getSubject());
+        } catch (ExpiredJwtException e) {
+            throw new TokenExpiredException("토큰이 만료되었습니다.", e);
+        } catch (SignatureException e) {
+            throw new InvalidTokenException("토큰 서명이 유효하지 않습니다.", e);
+        } catch (MalformedJwtException e) {
+            throw new InvalidTokenException("잘못된 형식의 토큰입니다.", e);
+        } catch (Exception e) {
+            throw new InvalidTokenException("유효하지 않은 토큰입니다.", e);
+        }
     }
 
     /**
@@ -92,15 +107,27 @@ public class JwtUtil {
      *
      * @param token JWT 토큰
      * @return 사용자 역할
+     * @throws TokenExpiredException 토큰이 만료된 경우
+     * @throws InvalidTokenException 토큰이 유효하지 않은 경우
      */
     public String getRoleFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
-        return claims.get(AUTHORITIES_KEY, String.class);
+            return claims.get(AUTHORITIES_KEY, String.class);
+        } catch (ExpiredJwtException e) {
+            throw new TokenExpiredException("토큰이 만료되었습니다.", e);
+        } catch (SignatureException e) {
+            throw new InvalidTokenException("토큰 서명이 유효하지 않습니다.", e);
+        } catch (MalformedJwtException e) {
+            throw new InvalidTokenException("잘못된 형식의 토큰입니다.", e);
+        } catch (Exception e) {
+            throw new InvalidTokenException("유효하지 않은 토큰입니다.", e);
+        }
     }
 
     /**
@@ -140,6 +167,8 @@ public class JwtUtil {
      *
      * @param token JWT 토큰
      * @return Authentication 객체
+     * @throws TokenExpiredException 토큰이 만료된 경우
+     * @throws InvalidTokenException 토큰이 유효하지 않은 경우
      */
     public Authentication getAuthentication(String token) {
         Long userId = getUserIdFromToken(token);

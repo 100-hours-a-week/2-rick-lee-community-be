@@ -7,6 +7,8 @@ import com.ricklee.community.exception.DuplicateResourceException;
 import com.ricklee.community.exception.ResourceNotFoundException;
 import com.ricklee.community.exception.UnauthorizedException;
 import com.ricklee.community.repository.UserRepository;
+import com.ricklee.community.util.jwt.JwtUtil;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,20 +40,15 @@ public class UserServiceUnitTest {
     @InjectMocks
     private UserService userService;
 
+    @Mock
+    private JwtUtil jwtUtil;
+
     private SignupRequestDto signupRequestDto;
     private User user;
 
     @BeforeEach
     void setUp() {
 
-        // jwt.secret 값을 직접 설정
-        ReflectionTestUtils.setField(userService, "jwtSecret",
-                "aVeryLongSecretKeyThatIsAtLeast64BytesLongToSatisfyTheHS512AlgorithmRequirementsAndEnsureSecurityOfTheToken1234567890abcdefghijklmnopqrstuvwxyz");
-
-        userService.init();
-
-        // jwt 만료 시간 설정
-        ReflectionTestUtils.setField(userService, "jwtExpiration", 3600000L);
 
         // 테스트 데이터 생성
         signupRequestDto = new SignupRequestDto();
@@ -121,6 +118,8 @@ public class UserServiceUnitTest {
     @Test
     @DisplayName("로그인 서비스 - 성공")
     void loginSuccess() {
+        when(jwtUtil.generateToken(eq(1L), eq("MEMBER"))).thenReturn("mocked-jwt-token");
+
         // given
         LoginRequestDto loginRequestDto = new LoginRequestDto();
         loginRequestDto.setEmail("test@example.com");
@@ -185,12 +184,23 @@ public class UserServiceUnitTest {
         loginRequestDto.setEmail("test@example.com");
         loginRequestDto.setPassword("Test1234!");
 
+        // 사용자 인증 설정
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("Test1234!", "encodedPassword")).thenReturn(true);
+
+        // 중요: login 메서드가 반환할 토큰 지정
+        String testToken = "test-token";
+        when(jwtUtil.generateToken(1L, "MEMBER")).thenReturn(testToken);
+
+        // 중요: 토큰 검증 설정
+        when(jwtUtil.getUserIdFromToken(testToken)).thenReturn(1L);
 
         // 로그인으로 토큰 생성
         Map<String, Object> loginResult = userService.login(loginRequestDto);
         String token = (String) loginResult.get("token");
+
+        // 여기서 token은 "test-token"이어야 함
+        assertEquals(testToken, token);
 
         // when
         Long extractedUserId = userService.getUserIdFromToken(token);
@@ -200,10 +210,13 @@ public class UserServiceUnitTest {
     }
 
     @Test
-    @DisplayName("잘못된 JWT 토큰으로 예외 발생")
+    @DisplayName("유효하지 않은 토큰 검증")
     void invalidTokenTest() {
         // given
-        String invalidToken = "invalid.token.string";
+        String invalidToken = "invalid_token";
+
+        // JwtUtil이 예외를 던지도록 설정
+        when(jwtUtil.getUserIdFromToken(invalidToken)).thenThrow(new JwtException("Invalid token"));
 
         // when & then
         assertThrows(UnauthorizedException.class, () -> {

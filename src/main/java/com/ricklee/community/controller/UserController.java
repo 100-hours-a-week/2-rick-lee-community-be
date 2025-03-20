@@ -4,6 +4,9 @@ import com.ricklee.community.dto.LoginRequestDto;
 import com.ricklee.community.dto.PasswordChangeRequestDto;
 import com.ricklee.community.dto.SignupRequestDto;
 import com.ricklee.community.dto.UserUpdateRequestDto;
+import com.ricklee.community.exception.DuplicateResourceException;
+import com.ricklee.community.exception.ResourceNotFoundException;
+import com.ricklee.community.exception.UnauthorizedException;
 import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -13,12 +16,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 사용자 관련 API를 처리하는 컨트롤러
+ */
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
 
+    /**
+     * 생성자 주입을 통한 의존성 주입
+     */
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -40,8 +49,16 @@ public class UserController {
             response.put("data", data);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (DuplicateResourceException e) {
+            // 중복 리소스 예외 처리 (이메일, 닉네임 중복)
+            response.put("message", "duplicate_resource");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
         } catch (Exception e) {
             response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
             response.put("data", null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -61,12 +78,23 @@ public class UserController {
             response.put("data", loginResult);
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            response.put("message", "invalid_credentials");
+        } catch (ResourceNotFoundException e) {
+            // 사용자를 찾을 수 없는 경우
+            response.put("message", "user_not_found");
+            response.put("error", e.getMessage());
             response.put("data", null);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (UnauthorizedException e) {
+            // 비밀번호 불일치 등 인증 실패
+            response.put("message", "authentication_failed");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         } catch (Exception e) {
             response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
             response.put("data", null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
@@ -85,16 +113,28 @@ public class UserController {
             userService.updateUserInfo(userId, requestDto);
 
             response.put("message", "user_updated");
+            response.put("data", null);
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
+        } catch (ResourceNotFoundException e) {
+            // 사용자를 찾을 수 없는 경우
+            response.put("message", "user_not_found");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (DuplicateResourceException e) {
+            // 닉네임 중복 등 중복 리소스 예외
+            response.put("message", "duplicate_resource");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } catch (Exception e) {
             response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
             response.put("data", null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
@@ -111,16 +151,28 @@ public class UserController {
             userService.changePassword(userId, requestDto);
 
             response.put("message", "password_updated");
+            response.put("data", null);
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
+        } catch (ResourceNotFoundException e) {
+            // 사용자를 찾을 수 없는 경우
+            response.put("message", "user_not_found");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (UnauthorizedException e) {
+            // 현재 비밀번호 불일치 등 인증 실패
+            response.put("message", "authentication_failed");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        } catch (Exception e) {
             response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
             response.put("data", null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
@@ -136,16 +188,28 @@ public class UserController {
             userService.deleteUser(userId);
 
             response.put("message", "user_deleted");
+            response.put("data", null);
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            response.put("message", "unauthorized");
+        } catch (ResourceNotFoundException e) {
+            // 사용자를 찾을 수 없는 경우
+            response.put("message", "user_not_found");
+            response.put("error", e.getMessage());
             response.put("data", null);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (UnauthorizedException e) {
+            // 인증 실패 (유효하지 않은 토큰 등)
+            response.put("message", "unauthorized");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         } catch (Exception e) {
-            response.put("message", "internal_server_error");
+            response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
             response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 }

@@ -32,7 +32,7 @@ public class Post extends BaseTimeEntity {
 
 
 
-    @Column(name = "view_count", nullable = false)
+    @Column(name = "view_counts", nullable = false)
     private Integer viewCount = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -10,19 +10,11 @@ import com.ricklee.community.exception.ResourceNotFoundException;
 import com.ricklee.community.exception.UnauthorizedException;
 import com.ricklee.community.repository.UserRepository;
 import com.ricklee.community.util.jwt.JwtUtil;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.PostConstruct;
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,39 +22,12 @@ import java.util.Map;
  * 사용자 관련 비즈니스 로직을 처리하는 서비스
  */
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${jwt.expiration}")
-    private long jwtExpiration;
-
-    // SecretKey 객체로 변환된 JWT 시크릿 키
-    private SecretKey jwtSecretKey;
-
-    /**
-     * 생성자 주입을 통한 의존성 주입
-     */
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-    }
-
-    /**
-     * 애플리케이션 시작 시 JWT 시크릿 키를 SecretKey 객체로 변환
-     */
-    @PostConstruct
-    public void init() {
-        // 문자열 형태의 시크릿 키를 SecretKey 객체로 변환
-        this.jwtSecretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-    }
 
     /**
      * 회원가입 처리
@@ -115,7 +80,7 @@ public class UserService {
             throw new UnauthorizedException("비밀번호가 일치하지 않습니다.");
         }
 
-        // JWT 토큰 생성
+        // JWT 토큰 생성 - JwtUtil 사용
         String token = jwtUtil.generateToken(user.getId(), "MEMBER");
 
         // 응답 데이터 생성
@@ -191,37 +156,14 @@ public class UserService {
     }
 
     /**
-     * JWT 토큰 생성
-     * @param userId 사용자 ID
-     * @return 생성된 JWT 토큰
-     */
-    private String generateToken(Long userId) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpiration);
-
-        return Jwts.builder()
-                .setSubject(userId.toString())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(jwtSecretKey)  // 생성된 안전한 키 사용
-                .compact();
-    }
-
-    /**
-     * 토큰에서 사용자 ID 추출
+     * 토큰에서 사용자 ID 추출 - JwtUtil 사용
      * @param token JWT 토큰
      * @return 사용자 ID
      * @throws UnauthorizedException 토큰이 유효하지 않은 경우
      */
     public Long getUserIdFromToken(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(jwtSecretKey)  // 생성된 안전한 키 사용
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
-            return Long.parseLong(claims.getSubject());
+            return jwtUtil.getUserIdFromToken(token);
         } catch (Exception e) {
             throw new UnauthorizedException("유효하지 않은 토큰입니다.");
         }

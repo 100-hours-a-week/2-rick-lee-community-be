@@ -76,6 +76,43 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * JWT 기본 예외 처리
+     */
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse<Void>> handleJwtException(JwtException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("token_error"));
+    }
+
+    /**
+     * 토큰 만료 예외 처리
+     */
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTokenExpiredException(TokenExpiredException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("token_expired"));
+    }
+
+    /**
+     * 유효하지 않은 토큰 예외 처리
+     */
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidTokenException(InvalidTokenException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("invalid_token"));
+    }
+
+    /**
+     * 토큰 권한 부족 예외 처리
+     */
+    @ExceptionHandler(InsufficientTokenPermissionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInsufficientTokenPermissionException(
+            InsufficientTokenPermissionException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error("insufficient_permission"));
+    }
+
+    /**
      * 일반 예외 처리
      */
     @ExceptionHandler(Exception.class)

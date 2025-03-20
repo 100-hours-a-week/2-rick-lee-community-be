@@ -138,7 +138,7 @@ public class UserControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto2)))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 
     @Test
@@ -166,6 +166,6 @@ public class UserControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(loginDto)))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message", is("invalid_credentials")));
+                .andExpect(jsonPath("$.message", is("authentication_failed")));
     }
 }
