@@ -1,8 +1,11 @@
 package com.ricklee.community.controller;
 
+import com.ricklee.community.dto.ApiResponse;
 import com.ricklee.community.dto.PostDetailResponseDto;
 import com.ricklee.community.dto.PostListItemDto;
 import com.ricklee.community.dto.PostRequestDto;
+import com.ricklee.community.exception.ResourceNotFoundException;
+import com.ricklee.community.exception.UnauthorizedException;
 import com.ricklee.community.service.PostService;
 import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
@@ -14,6 +17,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 게시글 관련 API를 처리하는 컨트롤러
+ */
 @RestController
 @RequestMapping("/posts")
 public class PostController {
@@ -21,6 +27,9 @@ public class PostController {
     private final PostService postService;
     private final UserService userService;
 
+    /**
+     * 생성자 주입을 통한 의존성 주입
+     */
     public PostController(PostService postService, UserService userService) {
         this.postService = postService;
         this.userService = userService;
@@ -46,14 +55,21 @@ public class PostController {
             response.put("data", data);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
+        } catch (UnauthorizedException e) {
             response.put("message", "unauthorized");
+            response.put("error", e.getMessage());
             response.put("data", null);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
+        } catch (ResourceNotFoundException e) {
+            response.put("message", e.getResourceType() + "_not_found");
+            response.put("error", e.getMessage());
             response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (Exception e) {
+            response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -74,20 +90,21 @@ public class PostController {
             response.put("data", postDetail);
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals("post_not_found")) {
-                response.put("message", "post_not_found");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            } else {
-                response.put("message", "unauthorized");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-            }
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
+        } catch (UnauthorizedException e) {
+            response.put("message", "unauthorized");
+            response.put("error", e.getMessage());
             response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        } catch (ResourceNotFoundException e) {
+            response.put("message", "post_not_found");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (Exception e) {
+            response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -109,24 +126,21 @@ public class PostController {
             response.put("data", updatedPost);
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals("post_not_found")) {
-                response.put("message", "post_not_found");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            } else if (e.getMessage().equals("unauthorized")) {
-                response.put("message", "unauthorized");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-            } else {
-                response.put("message", "invalid_request");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-            }
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
+        } catch (UnauthorizedException e) {
+            response.put("message", "unauthorized");
+            response.put("error", e.getMessage());
             response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        } catch (ResourceNotFoundException e) {
+            response.put("message", "post_not_found");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (Exception e) {
+            response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -144,26 +158,24 @@ public class PostController {
             postService.deletePost(userId, postId);
 
             response.put("message", "post_deleted");
+            response.put("data", null);
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals("post_not_found")) {
-                response.put("message", "post_not_found");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            } else if (e.getMessage().equals("unauthorized")) {
-                response.put("message", "unauthorized");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-            } else {
-                response.put("message", "invalid_request");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-            }
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
+        } catch (UnauthorizedException e) {
+            response.put("message", "unauthorized");
+            response.put("error", e.getMessage());
             response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        } catch (ResourceNotFoundException e) {
+            response.put("message", "post_not_found");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (Exception e) {
+            response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -178,7 +190,7 @@ public class PostController {
             @RequestParam(defaultValue = "10") int per_page) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // 토큰 유효성 검사 (실제 데이터는 사용하지 않으므로 변수에 할당하지 않음)
+            // 토큰 유효성 검사
             userService.getUserIdFromToken(token.replace("Bearer ", ""));
 
             // 페이지 인덱스는 0부터 시작하므로 1을 빼줌
@@ -192,14 +204,16 @@ public class PostController {
             response.put("pagination", pagination);
 
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
+        } catch (UnauthorizedException e) {
             response.put("message", "unauthorized");
+            response.put("error", e.getMessage());
             response.put("data", null);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         } catch (Exception e) {
-            response.put("message", "internal_server_error");
+            response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
             response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -223,24 +237,27 @@ public class PostController {
             response.put("data", data);
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals("post_not_found")) {
-                response.put("message", "post_not_found");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            } else if (e.getMessage().equals("duplicate_like")) {
-                response.put("message", "invalid_request");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-            } else {
-                response.put("message", "unauthorized");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-            }
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
+        } catch (UnauthorizedException e) {
+            response.put("message", "unauthorized");
+            response.put("error", e.getMessage());
             response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        } catch (ResourceNotFoundException e) {
+            response.put("message", "post_not_found");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (IllegalArgumentException e) {
+            // 중복 좋아요 등 유효성 검사 실패
+            response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (Exception e) {
+            response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -264,20 +281,33 @@ public class PostController {
             response.put("data", data);
 
             return ResponseEntity.ok(response);
+        } catch (UnauthorizedException e) {
+            response.put("message", "unauthorized");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        } catch (ResourceNotFoundException e) {
+            response.put("message", "post_not_found");
+            response.put("error", e.getMessage());
+            response.put("data", null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals("post_not_found") || e.getMessage().equals("like_not_found")) {
+            if (e.getMessage().equals("like_not_found")) {
                 response.put("message", "post_not_found");
+                response.put("error", e.getMessage());
                 response.put("data", null);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             } else {
-                response.put("message", "unauthorized");
+                response.put("message", "invalid_request");
+                response.put("error", e.getMessage());
                 response.put("data", null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
         } catch (Exception e) {
-            response.put("message", "internal_server_error");
+            response.put("message", "invalid_request");
+            response.put("error", e.getMessage());
             response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 }

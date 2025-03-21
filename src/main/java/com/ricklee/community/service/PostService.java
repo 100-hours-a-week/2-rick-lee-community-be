@@ -12,6 +12,7 @@ import com.ricklee.community.repository.CommentRepository;
 import com.ricklee.community.repository.LikeRepository;
 import com.ricklee.community.repository.PostRepository;
 import com.ricklee.community.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  * 게시글 관련 비즈니스 로직을 처리하는 서비스
  */
 @Service
+@RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
@@ -36,19 +38,6 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final LikeService likeService;
-
-    /**
-     * 생성자 주입을 통한 의존성 주입
-     */
-    public PostService(PostRepository postRepository, UserRepository userRepository,
-                       CommentRepository commentRepository, LikeRepository likeRepository,
-                       LikeService likeService) {
-        this.postRepository = postRepository;
-        this.userRepository = userRepository;
-        this.commentRepository = commentRepository;
-        this.likeRepository = likeRepository;
-        this.likeService = likeService;
-    }
 
     /**
      * 게시글 작성
