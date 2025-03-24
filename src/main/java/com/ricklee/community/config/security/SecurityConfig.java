@@ -1,5 +1,6 @@
 package com.ricklee.community.config.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ricklee.community.config.jwt.filter.JwtAuthenticationFilter;
 import com.ricklee.community.util.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,10 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +32,7 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
+    private final ObjectMapper objectMapper;
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
@@ -65,8 +71,38 @@ public class SecurityConfig {
                 .cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource()))
                 // 커스텀 JWT 핸들러 및 엔트리 포인트를 사용하기 위해 httpBasic disable
                 .httpBasic(AbstractHttpConfigurer::disable)
+                // 예외 처리 설정
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // 인증 실패 (401 Unauthorized)
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+
+                            Map<String, Object> errorResponse = new HashMap<>();
+                            errorResponse.put("message", "unauthorized");
+                            errorResponse.put("error", "인증에 실패했습니다. 유효한 토큰이 필요합니다.");
+                            errorResponse.put("data", null);
+
+                            String jsonResponse = objectMapper.writeValueAsString(errorResponse);
+                            response.getWriter().write(jsonResponse);
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            // 권한 부족 (403 Forbidden)
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+
+                            Map<String, Object> errorResponse = new HashMap<>();
+                            errorResponse.put("message", "access_denied");
+                            errorResponse.put("error", "해당 리소스에 접근할 권한이 없습니다.");
+                            errorResponse.put("data", null);
+
+                            String jsonResponse = objectMapper.writeValueAsString(errorResponse);
+                            response.getWriter().write(jsonResponse);
+                        })
+                )
                 // JWT Filter 를 필터체인에 끼워넣어줌
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+
                 .build();
     }
 

@@ -56,7 +56,7 @@ public class PostControllerUnitTest {
         objectMapper = new ObjectMapper();
 
         // 기본 토큰 검증 설정
-        when(userService.getUserIdFromToken(VALID_TOKEN.replace("Bearer ", "")))
+        lenient().when(userService.getUserIdFromToken(VALID_TOKEN.replace("Bearer ", "")))
                 .thenReturn(VALID_USER_ID);
     }
 
