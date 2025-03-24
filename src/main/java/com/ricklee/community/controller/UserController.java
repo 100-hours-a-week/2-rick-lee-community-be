@@ -1,12 +1,10 @@
 package com.ricklee.community.controller;
 
-import com.ricklee.community.dto.LoginRequestDto;
-import com.ricklee.community.dto.PasswordChangeRequestDto;
-import com.ricklee.community.dto.SignupRequestDto;
-import com.ricklee.community.dto.UserUpdateRequestDto;
-import com.ricklee.community.exception.DuplicateResourceException;
-import com.ricklee.community.exception.ResourceNotFoundException;
-import com.ricklee.community.exception.UnauthorizedException;
+import com.ricklee.community.dto.common.ApiResponse;
+import com.ricklee.community.dto.user.LoginRequestDto;
+import com.ricklee.community.dto.user.PasswordChangeRequestDto;
+import com.ricklee.community.dto.user.SignupRequestDto;
+import com.ricklee.community.dto.user.UserUpdateRequestDto;
 import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -37,31 +35,15 @@ public class UserController {
      * POST /users/signup
      */
     @PostMapping("/signup")
-    public ResponseEntity<Map<String, Object>> signup(@Valid @RequestBody SignupRequestDto requestDto) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Long userId = userService.signup(requestDto);
+    public ResponseEntity<ApiResponse<Map<String, Long>>> signup(@Valid @RequestBody SignupRequestDto requestDto) {
+        Long userId = userService.signup(requestDto);
 
-            Map<String, Object> data = new HashMap<>();
-            data.put("user_id", userId);
+        Map<String, Long> data = new HashMap<>();
+        data.put("user_id", userId);
 
-            response.put("message", "register_success");
-            response.put("data", data);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (DuplicateResourceException e) {
-            // 중복 리소스 예외 처리 (이메일, 닉네임 중복)
-            response.put("message", "duplicate_resource");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        } catch (Exception e) {
-            response.put("message", "invalid_request");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("register_success", data));
     }
 
     /**
@@ -69,35 +51,11 @@ public class UserController {
      * POST /users/login
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequestDto requestDto) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Map<String, Object> loginResult = userService.login(requestDto);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> login(@Valid @RequestBody LoginRequestDto requestDto) {
+        Map<String, Object> loginResult = userService.login(requestDto);
 
-            response.put("message", "login_success");
-            response.put("data", loginResult);
-
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            // 사용자를 찾을 수 없는 경우
-            response.put("message", "user_not_found");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } catch (UnauthorizedException e) {
-            // 비밀번호 불일치 등 인증 실패
-            response.put("message", "authentication_failed");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        } catch (Exception e) {
-            response.put("message", "invalid_request");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
+        return ResponseEntity
+                .ok(ApiResponse.success("login_success", loginResult));
     }
 
     /**
@@ -105,37 +63,13 @@ public class UserController {
      * PUT /users/{userId}
      */
     @PutMapping("/{userId}")
-    public ResponseEntity<Map<String, Object>> updateUserInfo(
+    public ResponseEntity<ApiResponse<Void>> updateUserInfo(
             @PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequestDto requestDto) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            userService.updateUserInfo(userId, requestDto);
+        userService.updateUserInfo(userId, requestDto);
 
-            response.put("message", "user_updated");
-            response.put("data", null);
-
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            // 사용자를 찾을 수 없는 경우
-            response.put("message", "user_not_found");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } catch (DuplicateResourceException e) {
-            // 닉네임 중복 등 중복 리소스 예외
-            response.put("message", "duplicate_resource");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        } catch (Exception e) {
-            response.put("message", "invalid_request");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
+        return ResponseEntity
+                .ok(ApiResponse.success("user_updated"));
     }
 
     /**
@@ -143,37 +77,13 @@ public class UserController {
      * PUT /users/{userId}/password
      */
     @PutMapping("/{userId}/password")
-    public ResponseEntity<Map<String, Object>> changePassword(
+    public ResponseEntity<ApiResponse<Void>> changePassword(
             @PathVariable Long userId,
             @Valid @RequestBody PasswordChangeRequestDto requestDto) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            userService.changePassword(userId, requestDto);
+        userService.changePassword(userId, requestDto);
 
-            response.put("message", "password_updated");
-            response.put("data", null);
-
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            // 사용자를 찾을 수 없는 경우
-            response.put("message", "user_not_found");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } catch (UnauthorizedException e) {
-            // 현재 비밀번호 불일치 등 인증 실패
-            response.put("message", "authentication_failed");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        } catch (Exception e) {
-            response.put("message", "invalid_request");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
+        return ResponseEntity
+                .ok(ApiResponse.success("password_updated"));
     }
 
     /**
@@ -181,35 +91,11 @@ public class UserController {
      * DELETE /users
      */
     @DeleteMapping
-    public ResponseEntity<Map<String, Object>> deleteUser(@RequestHeader("Authorization") String token) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
-            userService.deleteUser(userId);
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@RequestHeader("Authorization") String token) {
+        Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
+        userService.deleteUser(userId);
 
-            response.put("message", "user_deleted");
-            response.put("data", null);
-
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            // 사용자를 찾을 수 없는 경우
-            response.put("message", "user_not_found");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        } catch (UnauthorizedException e) {
-            // 인증 실패 (유효하지 않은 토큰 등)
-            response.put("message", "unauthorized");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-        } catch (Exception e) {
-            response.put("message", "invalid_request");
-            response.put("error", e.getMessage());
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
+        return ResponseEntity
+                .ok(ApiResponse.success("user_deleted"));
     }
 }

@@ -1,6 +1,7 @@
 package com.ricklee.community.controller;
 
-import com.ricklee.community.dto.CommentRequestDto;
+import com.ricklee.community.dto.common.ApiResponse;
+import com.ricklee.community.dto.comment.CommentRequestDto;
 import com.ricklee.community.service.CommentService;
 import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
@@ -12,6 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 댓글 관련 API를 처리하는 컨트롤러
+ */
 @RestController
 public class CommentController {
 
@@ -28,36 +32,18 @@ public class CommentController {
      * POST /comments
      */
     @PostMapping("/comments")
-    public ResponseEntity<Map<String, Object>> createComment(
+    public ResponseEntity<ApiResponse<Map<String, Long>>> createComment(
             @RequestHeader("Authorization") String token,
             @Valid @RequestBody CommentRequestDto requestDto) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
-            Long commentId = commentService.createComment(userId, requestDto);
+        Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
+        Long commentId = commentService.createComment(userId, requestDto);
 
-            Map<String, Object> data = new HashMap<>();
-            data.put("comment_id", commentId);
+        Map<String, Long> data = new HashMap<>();
+        data.put("comment_id", commentId);
 
-            response.put("message", "comment_created");
-            response.put("data", data);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals("post_not_found")) {
-                response.put("message", "post_not_found");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            } else {
-                response.put("message", "unauthorized");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-            }
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("comment_created", data));
     }
 
     /**
@@ -65,35 +51,15 @@ public class CommentController {
      * GET /posts/{postId}/comments
      */
     @GetMapping("/posts/{postId}/comments")
-    public ResponseEntity<Map<String, Object>> getComments(
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getComments(
             @RequestHeader("Authorization") String token,
             @PathVariable Long postId) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            // 토큰 유효성 검사 (실제 데이터는 사용하지 않으므로 변수에 할당하지 않음)
-            userService.getUserIdFromToken(token.replace("Bearer ", ""));
+        // 토큰 유효성 검사
+        userService.getUserIdFromToken(token.replace("Bearer ", ""));
+        List<Map<String, Object>> comments = commentService.getCommentsByPostId(postId);
 
-            List<Map<String, Object>> comments = commentService.getCommentsByPostId(postId);
-
-            response.put("message", "comments_retrieved");
-            response.put("data", comments);
-
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals("post_not_found")) {
-                response.put("message", "post_not_found");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            } else {
-                response.put("message", "unauthorized");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-            }
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+        return ResponseEntity
+                .ok(ApiResponse.success("comments_retrieved", comments));
     }
 
     /**
@@ -101,44 +67,21 @@ public class CommentController {
      * PUT /comments/{commentId}
      */
     @PutMapping("/comments/{commentId}")
-    public ResponseEntity<Map<String, Object>> updateComment(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> updateComment(
             @RequestHeader("Authorization") String token,
             @PathVariable Long commentId,
             @Valid @RequestBody Map<String, String> requestBody) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
-            String content = requestBody.get("content");
+        Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
+        String content = requestBody.get("content");
 
-            if (content == null || content.trim().isEmpty()) {
-                throw new IllegalArgumentException("invalid_request");
-            }
-
-            Map<String, Object> updatedComment = commentService.updateComment(userId, commentId, content);
-
-            response.put("message", "comment_updated");
-            response.put("data", updatedComment);
-
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals("comment_not_found")) {
-                response.put("message", "post_not_found");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            } else if (e.getMessage().equals("unauthorized")) {
-                response.put("message", "unauthorized");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-            } else {
-                response.put("message", "invalid_request");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-            }
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("내용은 필수 입력 항목입니다.");
         }
+
+        Map<String, Object> updatedComment = commentService.updateComment(userId, commentId, content);
+
+        return ResponseEntity
+                .ok(ApiResponse.success("comment_updated", updatedComment));
     }
 
     /**
@@ -146,39 +89,16 @@ public class CommentController {
      * DELETE /comments/{commentId}
      */
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<Map<String, Object>> deleteComment(
+    public ResponseEntity<ApiResponse<Map<String, Long>>> deleteComment(
             @RequestHeader("Authorization") String token,
             @PathVariable Long commentId) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
-            commentService.deleteComment(userId, commentId);
+        Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
+        commentService.deleteComment(userId, commentId);
 
-            Map<String, Object> data = new HashMap<>();
-            data.put("comment_id", commentId);
+        Map<String, Long> data = new HashMap<>();
+        data.put("comment_id", commentId);
 
-            response.put("message", "comment_deleted");
-            response.put("data", data);
-
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().equals("comment_not_found")) {
-                response.put("message", "post_not_found");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            } else if (e.getMessage().equals("unauthorized")) {
-                response.put("message", "unauthorized");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
-            } else {
-                response.put("message", "invalid_request");
-                response.put("data", null);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-            }
-        } catch (Exception e) {
-            response.put("message", "internal_server_error");
-            response.put("data", null);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
+        return ResponseEntity
+                .ok(ApiResponse.success("comment_deleted", data));
     }
 }

@@ -1,7 +1,7 @@
 package com.ricklee.community.util.jwt;
 
-import com.ricklee.community.exception.InvalidTokenException;
-import com.ricklee.community.exception.TokenExpiredException;
+import com.ricklee.community.exception.custom.InvalidTokenException;
+import com.ricklee.community.exception.custom.TokenExpiredException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;

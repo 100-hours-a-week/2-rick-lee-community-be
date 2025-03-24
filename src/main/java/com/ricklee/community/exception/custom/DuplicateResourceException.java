@@ -1,4 +1,4 @@
-package com.ricklee.community.exception;
+package com.ricklee.community.exception.custom;
 
 /**
  * 이미 존재하는 데이터를 중복 생성하려고 할 때 발생하는 예외

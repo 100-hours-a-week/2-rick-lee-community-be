@@ -1,18 +1,17 @@
-package com.ricklee.community.dto;
+package com.ricklee.community.dto.like;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 게시글 통계 정보를 담는 DTO
- * 게시글 ID, 댓글 수, 좋아요 수 등을 포함
+ * 게시글 좋아요 통계 정보를 담는 DTO
  */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostStatsDto {
+public class LikeStatsDto {
     private Long postId;
-    private Long commentCount;
     private Long likeCount;
+    private Boolean userLiked; // 현재 사용자의 좋아요 여부
 }

@@ -1,14 +1,13 @@
 package com.ricklee.community.service;
 
-import com.ricklee.community.domain.Like;
 import com.ricklee.community.domain.LikeId;
 import com.ricklee.community.domain.Post;
 import com.ricklee.community.domain.User;
-import com.ricklee.community.dto.PostDetailResponseDto;
-import com.ricklee.community.dto.PostListItemDto;
-import com.ricklee.community.dto.PostRequestDto;
-import com.ricklee.community.exception.ResourceNotFoundException;
-import com.ricklee.community.exception.UnauthorizedException;
+import com.ricklee.community.dto.post.PostDetailResponseDto;
+import com.ricklee.community.dto.post.PostListItemDto;
+import com.ricklee.community.dto.post.PostRequestDto;
+import com.ricklee.community.exception.custom.ResourceNotFoundException;
+import com.ricklee.community.exception.custom.UnauthorizedException;
 import com.ricklee.community.repository.CommentRepository;
 import com.ricklee.community.repository.LikeRepository;
 import com.ricklee.community.repository.PostRepository;
@@ -23,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;

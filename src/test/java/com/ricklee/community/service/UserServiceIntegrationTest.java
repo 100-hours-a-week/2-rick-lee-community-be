@@ -1,11 +1,11 @@
 package com.ricklee.community.service;
 
 import com.ricklee.community.domain.User;
-import com.ricklee.community.dto.LoginRequestDto;
-import com.ricklee.community.dto.SignupRequestDto;
-import com.ricklee.community.exception.DuplicateResourceException;
-import com.ricklee.community.exception.ResourceNotFoundException;
-import com.ricklee.community.exception.UnauthorizedException;
+import com.ricklee.community.dto.user.LoginRequestDto;
+import com.ricklee.community.dto.user.SignupRequestDto;
+import com.ricklee.community.exception.custom.DuplicateResourceException;
+import com.ricklee.community.exception.custom.ResourceNotFoundException;
+import com.ricklee.community.exception.custom.UnauthorizedException;
 import com.ricklee.community.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

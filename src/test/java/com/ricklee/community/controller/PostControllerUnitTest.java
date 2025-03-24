@@ -1,11 +1,11 @@
 package com.ricklee.community.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ricklee.community.dto.PostDetailResponseDto;
-import com.ricklee.community.dto.PostListItemDto;
-import com.ricklee.community.dto.PostRequestDto;
-import com.ricklee.community.exception.ResourceNotFoundException;
-import com.ricklee.community.exception.UnauthorizedException;
+import com.ricklee.community.dto.post.PostDetailResponseDto;
+import com.ricklee.community.dto.post.PostListItemDto;
+import com.ricklee.community.dto.post.PostRequestDto;
+import com.ricklee.community.exception.custom.ResourceNotFoundException;
+import com.ricklee.community.exception.custom.UnauthorizedException;
 import com.ricklee.community.service.PostService;
 import com.ricklee.community.service.UserService;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,4 +1,4 @@
-package com.ricklee.community.exception;
+package com.ricklee.community.exception.custom;
 
 /**
  * 인증되지 않은 사용자의 접근 또는 권한이 없는 작업 시도 시 발생하는 예외

@@ -1,8 +1,8 @@
 package com.ricklee.community.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ricklee.community.dto.LoginRequestDto;
-import com.ricklee.community.dto.SignupRequestDto;
+import com.ricklee.community.dto.user.LoginRequestDto;
+import com.ricklee.community.dto.user.SignupRequestDto;
 import com.ricklee.community.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +13,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -166,6 +165,6 @@ public class UserControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(loginDto)))
                 .andDo(print())
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message", is("authentication_failed")));
+                .andExpect(jsonPath("$.message", is("비밀번호가 일치하지 않습니다.")));
     }
 }

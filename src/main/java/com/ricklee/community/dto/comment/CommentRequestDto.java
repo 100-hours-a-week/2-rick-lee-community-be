@@ -1,4 +1,4 @@
-package com.ricklee.community.dto;
+package com.ricklee.community.dto.comment;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

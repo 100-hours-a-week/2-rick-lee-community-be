@@ -1,9 +1,9 @@
 package com.ricklee.community.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ricklee.community.dto.LoginRequestDto;
-import com.ricklee.community.dto.PostRequestDto;
-import com.ricklee.community.dto.SignupRequestDto;
+import com.ricklee.community.dto.user.LoginRequestDto;
+import com.ricklee.community.dto.post.PostRequestDto;
+import com.ricklee.community.dto.user.SignupRequestDto;
 import com.ricklee.community.repository.CommentRepository;
 import com.ricklee.community.repository.LikeRepository;
 import com.ricklee.community.repository.PostRepository;

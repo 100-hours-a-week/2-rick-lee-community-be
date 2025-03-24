@@ -1,4 +1,4 @@
-package com.ricklee.community.exception;
+package com.ricklee.community.exception.custom;
 
 /**
  * JWT 관련 기본 예외

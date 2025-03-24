@@ -2,7 +2,7 @@
  * 토큰 만료 예외
  * JWT 토큰이 만료된 경우 발생
  */
-package com.ricklee.community.exception;
+package com.ricklee.community.exception.custom;
 
 public class TokenExpiredException extends JwtException {
 
