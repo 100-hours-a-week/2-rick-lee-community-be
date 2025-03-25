@@ -7,6 +7,7 @@ import com.ricklee.community.dto.post.PostRequestDto;
 import com.ricklee.community.service.PostService;
 import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,19 +20,12 @@ import java.util.Map;
  * 게시글 관련 API를 처리하는 컨트롤러
  */
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/posts")
 public class PostController {
 
     private final PostService postService;
     private final UserService userService;
-
-    /**
-     * 생성자 주입을 통한 의존성 주입
-     */
-    public PostController(PostService postService, UserService userService) {
-        this.postService = postService;
-        this.userService = userService;
-    }
 
     /**
      * 게시글 작성 API

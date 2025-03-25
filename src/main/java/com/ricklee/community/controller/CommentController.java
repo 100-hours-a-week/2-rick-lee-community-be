@@ -2,9 +2,11 @@ package com.ricklee.community.controller;
 
 import com.ricklee.community.dto.common.ApiResponse;
 import com.ricklee.community.dto.comment.CommentRequestDto;
+import com.ricklee.community.exception.custom.BusinessException;
 import com.ricklee.community.service.CommentService;
 import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,15 +19,12 @@ import java.util.Map;
  * 댓글 관련 API를 처리하는 컨트롤러
  */
 @RestController
+@RequiredArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
     private final UserService userService;
 
-    public CommentController(CommentService commentService, UserService userService) {
-        this.commentService = commentService;
-        this.userService = userService;
-    }
 
     /**
      * 댓글 작성 API
@@ -58,6 +57,7 @@ public class CommentController {
         userService.getUserIdFromToken(token.replace("Bearer ", ""));
         List<Map<String, Object>> comments = commentService.getCommentsByPostId(postId);
 
+
         return ResponseEntity
                 .ok(ApiResponse.success("comments_retrieved", comments));
     }
@@ -75,7 +75,7 @@ public class CommentController {
         String content = requestBody.get("content");
 
         if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("내용은 필수 입력 항목입니다.");
+            throw new BusinessException("내용은 필수 입력 항목입니다.", "VALIDATION_ERROR", HttpStatus.BAD_REQUEST);
         }
 
         Map<String, Object> updatedComment = commentService.updateComment(userId, commentId, content);

@@ -10,6 +10,7 @@ import com.ricklee.community.exception.custom.ResourceNotFoundException;
 import com.ricklee.community.repository.LikeRepository;
 import com.ricklee.community.repository.PostRepository;
 import com.ricklee.community.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,20 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
  * 좋아요 관련 비즈니스 로직을 처리하는 서비스
  */
 @Service
+@RequiredArgsConstructor
 public class LikeService {
 
     private final LikeRepository likeRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
-
-    /**
-     * 생성자 주입을 통한 의존성 주입
-     */
-    public LikeService(LikeRepository likeRepository, UserRepository userRepository, PostRepository postRepository) {
-        this.likeRepository = likeRepository;
-        this.userRepository = userRepository;
-        this.postRepository = postRepository;
-    }
 
     /**
      * 게시글에 좋아요 추가

@@ -41,7 +41,8 @@ public class SecurityConfig {
             config.setAllowedHeaders(Collections.singletonList("*"));
             config.setAllowedMethods(Collections.singletonList("*"));
             config.setAllowedOriginPatterns(Arrays.asList(
-                    "http://localhost:3000"
+                    "http://localhost:3000",
+                    "http://localhost:5500"
             ));
             config.setAllowCredentials(true);
             return config;

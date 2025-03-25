@@ -9,6 +9,7 @@ import com.ricklee.community.exception.custom.UnauthorizedException;
 import com.ricklee.community.repository.CommentRepository;
 import com.ricklee.community.repository.PostRepository;
 import com.ricklee.community.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,20 +22,12 @@ import java.util.stream.Collectors;
  * 댓글 관련 비즈니스 로직을 처리하는 서비스
  */
 @Service
+@RequiredArgsConstructor
 public class CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-
-    /**
-     * 생성자 주입을 통한 의존성 주입
-     */
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository) {
-        this.commentRepository = commentRepository;
-        this.postRepository = postRepository;
-        this.userRepository = userRepository;
-    }
 
     /**
      * 댓글 작성

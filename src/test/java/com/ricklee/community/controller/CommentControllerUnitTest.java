@@ -6,6 +6,7 @@ import com.ricklee.community.dto.common.ApiResponse;
 import com.ricklee.community.exception.custom.ResourceNotFoundException;
 import com.ricklee.community.exception.custom.UnauthorizedException;
 import com.ricklee.community.exception.custom.BusinessException;
+import com.ricklee.community.exception.handler.GlobalExceptionHandler;
 import com.ricklee.community.service.CommentService;
 import com.ricklee.community.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,20 +60,20 @@ public class CommentControllerUnitTest {
 
     @BeforeEach
     void setUp() {
-        // GlobalExceptionHandler를 MockMvc에 등록
-        ExceptionHandlerExceptionResolver exceptionResolver = new ExceptionHandlerExceptionResolver();
-        exceptionResolver.afterPropertiesSet();
+        // GlobalExceptionHandler 인스턴스 생성
+        GlobalExceptionHandler exceptionHandler = new GlobalExceptionHandler();
 
+        // MockMvc 설정에 예외 핸들러 추가
         mockMvc = MockMvcBuilders.standaloneSetup(commentController)
-                .setHandlerExceptionResolvers(exceptionResolver)
+                .setControllerAdvice(exceptionHandler)  // 여기서 예외 핸들러 등록
                 .build();
+
         objectMapper = new ObjectMapper();
 
         // 기본 토큰 검증 설정
         when(userService.getUserIdFromToken(VALID_TOKEN.replace("Bearer ", "")))
                 .thenReturn(VALID_USER_ID);
     }
-
     @Test
     @DisplayName("댓글 작성 API 테스트 - 성공")
     void createCommentSuccess() throws Exception {
