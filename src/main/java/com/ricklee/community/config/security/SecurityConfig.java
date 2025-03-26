@@ -3,6 +3,7 @@ package com.ricklee.community.config.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ricklee.community.config.jwt.filter.JwtAuthenticationFilter;
 import com.ricklee.community.util.jwt.JwtUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,8 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -42,7 +41,9 @@ public class SecurityConfig {
             config.setAllowedMethods(Collections.singletonList("*"));
             config.setAllowedOriginPatterns(Arrays.asList(
                     "http://localhost:3000",
-                    "http://localhost:5500"
+                    "http://127.0.0.1:3000",
+                    "http://localhost:5500",
+                    "http://127.0.0.1:5500"
             ));
             config.setAllowCredentials(true);
             return config;

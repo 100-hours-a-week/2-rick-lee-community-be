@@ -1,7 +1,6 @@
 package com.ricklee.community.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ricklee.community.controller.UserController;
 import com.ricklee.community.dto.user.LoginRequestDto;
 import com.ricklee.community.dto.user.PasswordChangeRequestDto;
 import com.ricklee.community.dto.user.SignupRequestDto;
@@ -9,6 +8,7 @@ import com.ricklee.community.dto.user.UserUpdateRequestDto;
 import com.ricklee.community.exception.custom.DuplicateResourceException;
 import com.ricklee.community.exception.custom.ResourceNotFoundException;
 import com.ricklee.community.exception.custom.UnauthorizedException;
+import com.ricklee.community.exception.handler.GlobalExceptionHandler;
 import com.ricklee.community.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,12 +20,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -36,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @ExtendWith(MockitoExtension.class)
-class UserControllerTest {
+class UserControllerUnitTest {
     @Mock
     private UserService userService;
 
@@ -50,10 +51,11 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setControllerAdvice(new GlobalExceptionHandler()) // 글로벌 예외 핸들러 추가
+                .build();
         objectMapper = new ObjectMapper();
 
-        // 기본 토큰 검증 설정
         when(userService.getUserIdFromToken(VALID_TOKEN.replace("Bearer ", "")))
                 .thenReturn(VALID_USER_ID);
     }
@@ -284,7 +286,7 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andDo(print())
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message", is("user_not_found")));
+                .andExpect(jsonPath("$.message", containsString("user not found")));
     }
 
     @Test
