@@ -1,7 +1,8 @@
 package com.ricklee.community.controller;
 
-import com.ricklee.community.dto.common.ApiResponse;
 import com.ricklee.community.dto.comment.CommentRequestDto;
+import com.ricklee.community.dto.comment.CommentResponseDto;
+import com.ricklee.community.dto.common.ApiResponse;
 import com.ricklee.community.exception.custom.BusinessException;
 import com.ricklee.community.service.CommentService;
 import com.ricklee.community.service.UserService;
@@ -50,13 +51,13 @@ public class CommentController {
      * GET /posts/{postId}/comments
      */
     @GetMapping("/posts/{postId}/comments")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getComments(
+    public ResponseEntity<ApiResponse<List<CommentResponseDto>>> getComments(
             @RequestHeader("Authorization") String token,
             @PathVariable Long postId) {
         // 토큰 유효성 검사
         userService.getUserIdFromToken(token.replace("Bearer ", ""));
-        List<Map<String, Object>> comments = commentService.getCommentsByPostId(postId);
 
+        List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
 
         return ResponseEntity
                 .ok(ApiResponse.success("comments_retrieved", comments));

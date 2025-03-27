@@ -4,6 +4,7 @@ import com.ricklee.community.domain.Comment;
 import com.ricklee.community.domain.Post;
 import com.ricklee.community.domain.User;
 import com.ricklee.community.dto.comment.CommentRequestDto;
+import com.ricklee.community.dto.comment.CommentResponseDto;
 import com.ricklee.community.exception.custom.ResourceNotFoundException;
 import com.ricklee.community.exception.custom.UnauthorizedException;
 import com.ricklee.community.repository.CommentRepository;
@@ -31,7 +32,8 @@ public class CommentService {
 
     /**
      * 댓글 작성
-     * @param userId 작성자 ID
+     *
+     * @param userId     작성자 ID
      * @param requestDto 댓글 작성 요청 정보
      * @return 생성된 댓글의 ID
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
@@ -62,34 +64,33 @@ public class CommentService {
 
     /**
      * 특정 게시글의 댓글 목록 조회
+     *
      * @param postId 게시글 ID
      * @return 댓글 목록
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      */
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> getCommentsByPostId(Long postId) {
+    public List<CommentResponseDto> getCommentsByPostId(Long postId) {
         // 게시글 존재 여부 확인
         if (!postRepository.existsById(postId)) {
             throw new ResourceNotFoundException("post", "id", postId);
         }
 
-        // 댓글 조회
-        List<Comment> comments = commentRepository.findByPostIdOrderByCreatedAtDesc(postId);
-
-        // 각 댓글을 Map으로 변환하여 반환
-        return comments.stream()
-                .map(this::convertCommentToMap)
+        // 게시글의 댓글 목록 조회 후 DTO로 변환
+        return commentRepository.findByPostIdOrderByCreatedAtDesc(postId).stream()
+                .map(CommentResponseDto::new)
                 .collect(Collectors.toList());
     }
 
     /**
      * 댓글 수정
-     * @param userId 수정 요청자 ID
+     *
+     * @param userId    수정 요청자 ID
      * @param commentId 수정할 댓글 ID
-     * @param content 수정할 내용
+     * @param content   수정할 내용
      * @return 수정된 댓글 정보
      * @throws ResourceNotFoundException 댓글을 찾을 수 없는 경우
-     * @throws UnauthorizedException 댓글 작성자가 아닌 경우
+     * @throws UnauthorizedException     댓글 작성자가 아닌 경우
      */
     @Transactional
     public Map<String, Object> updateComment(Long userId, Long commentId, String content) {
@@ -116,10 +117,11 @@ public class CommentService {
 
     /**
      * 댓글 삭제
-     * @param userId 삭제 요청자 ID
+     *
+     * @param userId    삭제 요청자 ID
      * @param commentId 삭제할 댓글 ID
      * @throws ResourceNotFoundException 댓글을 찾을 수 없는 경우
-     * @throws UnauthorizedException 댓글 작성자가 아닌 경우
+     * @throws UnauthorizedException     댓글 작성자가 아닌 경우
      */
     @Transactional
     public void deleteComment(Long userId, Long commentId) {
@@ -138,6 +140,7 @@ public class CommentService {
 
     /**
      * 특정 게시글의 댓글 수 조회
+     *
      * @param postId 게시글 ID
      * @return 댓글 수
      */
@@ -148,6 +151,7 @@ public class CommentService {
 
     /**
      * 댓글을 Map 형태로 변환
+     *
      * @param comment 변환할 댓글
      * @return 변환된 Map
      */
