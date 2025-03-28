@@ -27,11 +27,12 @@ public class LikeService {
 
     /**
      * 게시글에 좋아요 추가
+     *
      * @param userId 사용자 ID
      * @param postId 게시글 ID
      * @return 좋아요 추가 성공 메시지
      * @throws ResourceNotFoundException 사용자 또는 게시글을 찾을 수 없는 경우
-     * @throws BusinessException 이미 좋아요를 누른 경우
+     * @throws BusinessException         이미 좋아요를 누른 경우
      */
     @Transactional
     public String addLike(Long userId, Long postId) {
@@ -58,6 +59,7 @@ public class LikeService {
 
     /**
      * 게시글 좋아요 취소
+     *
      * @param userId 사용자 ID
      * @param postId 게시글 ID
      * @return 좋아요 취소 성공 메시지
@@ -72,20 +74,20 @@ public class LikeService {
         postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("post", "id", postId));
 
-        // 복합 키로 직접 삭제
+        // 복합 키로 확인
         LikeId likeId = new LikeId(userId, postId);
-        if (!likeRepository.existsById(likeId)) {
-            throw new ResourceNotFoundException("like", "userId,postId", userId + "," + postId);
-        }
 
-        // 좋아요 삭제
-        likeRepository.deleteById(likeId);
+        // 좋아요가 있을 경우만 삭제 (없으면 이미 취소된 것으로 간주)
+        if (likeRepository.existsById(likeId)) {
+            likeRepository.deleteById(likeId);
+        }
 
         return "좋아요가 취소되었습니다.";
     }
 
     /**
      * 게시글 좋아요 통계 조회
+     *
      * @param postId 게시글 ID
      * @param userId 현재 사용자 ID (선택 사항)
      * @return 좋아요 통계 정보
@@ -113,6 +115,7 @@ public class LikeService {
 
     /**
      * 특정 게시글의 좋아요 수 조회
+     *
      * @param postId 게시글 ID
      * @return 좋아요 수
      */
@@ -123,6 +126,7 @@ public class LikeService {
 
     /**
      * 사용자가 특정 게시글에 좋아요를 눌렀는지 확인
+     *
      * @param userId 사용자 ID
      * @param postId 게시글 ID
      * @return 좋아요 여부

@@ -1,10 +1,7 @@
 package com.ricklee.community.service;
 
 import com.ricklee.community.domain.User;
-import com.ricklee.community.dto.user.LoginRequestDto;
-import com.ricklee.community.dto.user.PasswordChangeRequestDto;
-import com.ricklee.community.dto.user.SignupRequestDto;
-import com.ricklee.community.dto.user.UserUpdateRequestDto;
+import com.ricklee.community.dto.user.*;
 import com.ricklee.community.exception.custom.DuplicateResourceException;
 import com.ricklee.community.exception.custom.ResourceNotFoundException;
 import com.ricklee.community.exception.custom.UnauthorizedException;
@@ -31,6 +28,7 @@ public class UserService {
 
     /**
      * 회원가입 처리
+     *
      * @param requestDto 회원가입 요청 정보
      * @return 생성된 사용자의 ID
      * @throws DuplicateResourceException 이메일 또는 닉네임이 이미 존재하는 경우
@@ -64,10 +62,11 @@ public class UserService {
 
     /**
      * 로그인 처리
+     *
      * @param requestDto 로그인 요청 정보
      * @return 인증 토큰과 사용자 ID
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
-     * @throws UnauthorizedException 비밀번호가 일치하지 않는 경우
+     * @throws UnauthorizedException     비밀번호가 일치하지 않는 경우
      */
     @Transactional(readOnly = true)
     public Map<String, Object> login(LoginRequestDto requestDto) {
@@ -92,10 +91,24 @@ public class UserService {
     }
 
     /**
-     * 회원 정보 수정
-     * @param userId 대상 사용자 ID
-     * @param requestDto 수정 요청 정보
+     * 사용자 정보 조회 및 응답 DTO 생성
+     *
+     * @param userId 사용자 ID
+     * @return 사용자 정보 응답 DTO
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
+     */
+    @Transactional(readOnly = true)
+    public UserResponseDto getUserInfo(Long userId) {
+        User user = getUserById(userId);
+        return UserResponseDto.from(user);
+    }
+
+    /**
+     * 회원 정보 수정
+     *
+     * @param userId     대상 사용자 ID
+     * @param requestDto 수정 요청 정보
+     * @throws ResourceNotFoundException  사용자를 찾을 수 없는 경우
      * @throws DuplicateResourceException 닉네임이 이미 존재하는 경우
      */
     @Transactional
@@ -117,10 +130,11 @@ public class UserService {
 
     /**
      * 비밀번호 변경
-     * @param userId 대상 사용자 ID
+     *
+     * @param userId     대상 사용자 ID
      * @param requestDto 비밀번호 변경 요청 정보
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
-     * @throws UnauthorizedException 현재 비밀번호가 일치하지 않는 경우
+     * @throws UnauthorizedException     현재 비밀번호가 일치하지 않는 경우
      */
     @Transactional
     public void changePassword(Long userId, PasswordChangeRequestDto requestDto) {
@@ -141,6 +155,7 @@ public class UserService {
 
     /**
      * 회원 탈퇴
+     *
      * @param userId 대상 사용자 ID
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
@@ -157,6 +172,7 @@ public class UserService {
 
     /**
      * 토큰에서 사용자 ID 추출 - JwtUtil 사용
+     *
      * @param token JWT 토큰
      * @return 사용자 ID
      * @throws UnauthorizedException 토큰이 유효하지 않은 경우
@@ -171,6 +187,7 @@ public class UserService {
 
     /**
      * 사용자 조회
+     *
      * @param userId 사용자 ID
      * @return 사용자 엔티티
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우

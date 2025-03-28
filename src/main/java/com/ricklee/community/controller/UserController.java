@@ -1,10 +1,7 @@
 package com.ricklee.community.controller;
 
 import com.ricklee.community.dto.common.ApiResponse;
-import com.ricklee.community.dto.user.LoginRequestDto;
-import com.ricklee.community.dto.user.PasswordChangeRequestDto;
-import com.ricklee.community.dto.user.SignupRequestDto;
-import com.ricklee.community.dto.user.UserUpdateRequestDto;
+import com.ricklee.community.dto.user.*;
 import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,20 +14,20 @@ import java.util.Map;
 
 /**
  * 사용자 관련 API를 처리하는 컨트롤러
+ * RESTful API 설계 원칙을 따름
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
 
     /**
      * 회원가입 API
-     * POST /users/signup
+     * POST /users
      */
-    @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Map<String, Long>>> signup(@Valid @RequestBody SignupRequestDto requestDto) {
+    @PostMapping("/users")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> createUser(@Valid @RequestBody SignupRequestDto requestDto) {
         Long userId = userService.signup(requestDto);
 
         Map<String, Long> data = new HashMap<>();
@@ -38,27 +35,38 @@ public class UserController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("register_success", data));
+                .body(ApiResponse.success("user_created", data));
     }
 
     /**
      * 로그인 API
-     * POST /users/login
+     * POST /auth/login
      */
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<ApiResponse<Map<String, Object>>> login(@Valid @RequestBody LoginRequestDto requestDto) {
         Map<String, Object> loginResult = userService.login(requestDto);
 
         return ResponseEntity
                 .ok(ApiResponse.success("login_success", loginResult));
     }
+    
+    /**
+     * 사용자 정보 조회 API
+     * GET /users/{userId}
+     */
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<ApiResponse<UserResponseDto>> getUser(@PathVariable Long userId) {
+        UserResponseDto userResponseDto = userService.getUserInfo(userId);
+        return ResponseEntity
+                .ok(ApiResponse.success("user_found", userResponseDto));
+    }
 
     /**
      * 회원 정보 수정 API
      * PUT /users/{userId}
      */
-    @PutMapping("/{userId}")
-    public ResponseEntity<ApiResponse<Void>> updateUserInfo(
+    @PutMapping("/users/{userId}")
+    public ResponseEntity<ApiResponse<Void>> updateUser(
             @PathVariable Long userId,
             @Valid @RequestBody UserUpdateRequestDto requestDto) {
         userService.updateUserInfo(userId, requestDto);
@@ -69,10 +77,10 @@ public class UserController {
 
     /**
      * 비밀번호 변경 API
-     * PUT /users/{userId}/password
+     * PATCH /users/{userId}/password
      */
-    @PutMapping("/{userId}/password")
-    public ResponseEntity<ApiResponse<Void>> changePassword(
+    @PatchMapping("/users/{userId}/password")
+    public ResponseEntity<ApiResponse<Void>> updatePassword(
             @PathVariable Long userId,
             @Valid @RequestBody PasswordChangeRequestDto requestDto) {
         userService.changePassword(userId, requestDto);
@@ -83,11 +91,10 @@ public class UserController {
 
     /**
      * 회원 탈퇴 API
-     * DELETE /users
+     * DELETE /users/{userId}
      */
-    @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@RequestHeader("Authorization") String token) {
-        Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
 
         return ResponseEntity
