@@ -1,10 +1,7 @@
 package com.ricklee.community.controller;
 
 import com.ricklee.community.dto.common.ApiResponse;
-import com.ricklee.community.dto.user.LoginRequestDto;
-import com.ricklee.community.dto.user.PasswordChangeRequestDto;
-import com.ricklee.community.dto.user.SignupRequestDto;
-import com.ricklee.community.dto.user.UserUpdateRequestDto;
+import com.ricklee.community.dto.user.*;
 import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +22,17 @@ public class UserController {
 
     private final UserService userService;
 
+    /**
+     * 회원 정보 조회 API
+     * GET /users/{userId}
+     */
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<UserResponseDto>> getUserInfo(@PathVariable Long userId) {
+        UserResponseDto userInfo = userService.getUserInfo(userId);
+
+        return ResponseEntity
+                .ok(ApiResponse.success("user_found", userInfo));
+    }
     /**
      * 회원가입 API
      * POST /users/signup
@@ -51,6 +59,31 @@ public class UserController {
 
         return ResponseEntity
                 .ok(ApiResponse.success("login_success", loginResult));
+    }
+
+    /**
+     * 닉네임 중복 확인 API
+     * GET /users/check-nickname
+     */
+    @GetMapping("/check-nickname")
+    public ResponseEntity<ApiResponse<Boolean>> checkNickname(@RequestParam String nickname) {
+        // 닉네임 유효성 검사
+        if (nickname == null || nickname.trim().isEmpty()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.error("invalid_input", "닉네임이 비어있습니다."));
+        }
+
+        // 닉네임 중복 확인
+        boolean isAvailable = userService.isNicknameAvailable(nickname);
+
+        if (isAvailable) {
+            return ResponseEntity
+                    .ok(ApiResponse.success("nickname_available", true));
+        } else {
+            return ResponseEntity
+                    .ok(ApiResponse.error("duplicate_nickname", "이미 사용 중인 닉네임입니다."));
+        }
     }
 
     /**

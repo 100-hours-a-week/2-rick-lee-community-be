@@ -1,10 +1,7 @@
 package com.ricklee.community.service;
 
 import com.ricklee.community.domain.User;
-import com.ricklee.community.dto.user.LoginRequestDto;
-import com.ricklee.community.dto.user.PasswordChangeRequestDto;
-import com.ricklee.community.dto.user.SignupRequestDto;
-import com.ricklee.community.dto.user.UserUpdateRequestDto;
+import com.ricklee.community.dto.user.*;
 import com.ricklee.community.exception.custom.DuplicateResourceException;
 import com.ricklee.community.exception.custom.ResourceNotFoundException;
 import com.ricklee.community.exception.custom.UnauthorizedException;
@@ -29,6 +26,23 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    /**
+     * 사용자 정보 조회
+     * @param userId 사용자 ID
+     * @return 사용자 정보 DTO
+     * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
+     */
+    @Transactional(readOnly = true)
+    public UserResponseDto getUserInfo(Long userId) {
+        User user = getUserById(userId);
+
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImg(user.getProfileImg())
+                .build();
+    }
     /**
      * 회원가입 처리
      * @param requestDto 회원가입 요청 정보
@@ -89,6 +103,16 @@ public class UserService {
         response.put("user_id", user.getId());
 
         return response;
+    }
+
+    /**
+     * 닉네임 사용 가능 여부 확인
+     * @param nickname 확인할 닉네임
+     * @return 사용 가능하면 true, 중복이면 false
+     */
+    @Transactional(readOnly = true)
+    public boolean isNicknameAvailable(String nickname) {
+        return !userRepository.existsByNickname(nickname);
     }
 
     /**
