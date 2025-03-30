@@ -12,6 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+
 public class CommentRequestDto {
 
     @NotNull(message = "게시글 ID는 필수 항목입니다.")
