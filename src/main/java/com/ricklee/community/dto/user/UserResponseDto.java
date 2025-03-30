@@ -14,7 +14,7 @@ public class UserResponseDto {
     private Long id;
     private String email;
     private String nickname;
-    private byte[] profileImg;
+    private String profileImgUrl; // 새로 추가된 S3 이미지 URL 필드
 
     public static UserResponseDto from(User user) {
         if (user == null) {
@@ -25,7 +25,7 @@ public class UserResponseDto {
                 .id(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
-                .profileImg(user.getProfileImg())
+                .profileImgUrl(user.getProfileImgUrl())
                 .build();
     }
 }

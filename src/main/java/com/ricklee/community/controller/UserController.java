@@ -6,8 +6,10 @@ import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,13 +35,17 @@ public class UserController {
         return ResponseEntity
                 .ok(ApiResponse.success("user_found", userInfo));
     }
+
     /**
-     * 회원가입 API
+     * 회원가입 API (멀티파트 방식)
      * POST /users/signup
      */
-    @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Map<String, Long>>> signup(@Valid @RequestBody SignupRequestDto requestDto) {
-        Long userId = userService.signup(requestDto);
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Map<String, Long>>> signup(
+            @ModelAttribute("data") @Valid SignupRequestDto requestDto,
+            @RequestPart(value = "image", required = false) MultipartFile profileImage) {
+
+        Long userId = userService.signup(requestDto, profileImage);
 
         Map<String, Long> data = new HashMap<>();
         data.put("user_id", userId);
@@ -87,14 +93,31 @@ public class UserController {
     }
 
     /**
-     * 회원 정보 수정 API
+     * 프로필 이미지 업로드 API
+     * POST /users/{userId}/profile-image
+     */
+    @PostMapping(value = "/{userId}/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<String>> uploadProfileImage(
+            @PathVariable Long userId,
+            @RequestParam("file") MultipartFile file) {
+
+        String imageUrl = userService.uploadProfileImage(userId, file);
+
+        return ResponseEntity
+                .ok(ApiResponse.success("image_uploaded", imageUrl));
+    }
+
+    /**
+     * 회원 정보 수정 API (멀티파트 방식)
      * PUT /users/{userId}
      */
-    @PutMapping("/{userId}")
+    @PutMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Void>> updateUserInfo(
             @PathVariable Long userId,
-            @Valid @RequestBody UserUpdateRequestDto requestDto) {
-        userService.updateUserInfo(userId, requestDto);
+            @RequestParam("nickname") String nickname,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+
+        userService.updateUserInfo(userId, nickname, file);
 
         return ResponseEntity
                 .ok(ApiResponse.success("user_updated"));

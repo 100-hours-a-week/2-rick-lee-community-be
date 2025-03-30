@@ -19,7 +19,7 @@ public class CommentResponseDto {
     // 작성자 정보
     private Long authorId;
     private String authorNickname;
-    private byte[] authorProfileImg;
+    private String authorProfileImgUrl;
 
     public CommentResponseDto(Comment comment) {
         this.commentId = comment.getId();
@@ -31,6 +31,6 @@ public class CommentResponseDto {
         // 작성자 정보 추가
         this.authorId = comment.getUser().getId();
         this.authorNickname = comment.getUser().getNickname();
-        this.authorProfileImg = comment.getUser().getProfileImg();
+        this.authorProfileImgUrl = comment.getUser().getProfileImgUrl();
     }
 }

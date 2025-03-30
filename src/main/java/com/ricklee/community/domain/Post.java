@@ -26,11 +26,8 @@ public class Post extends BaseTimeEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "post_img")
-    @Lob
-    private byte[] postImg;
-
-
+    @Column(name = "post_img_url")
+    private String postImgUrl;
 
     @Column(name = "view_counts", nullable = false)
     private Integer viewCount = 0;
@@ -49,13 +46,13 @@ public class Post extends BaseTimeEntity {
      * 게시글 생성을 위한 빌더 패턴
      * @param title 게시글 제목
      * @param content 게시글 내용
-     * @param postImg 게시글 이미지 데이터 (선택 사항)
+     * @param postImgUrl 게시글 이미지 데이터 (선택 사항)
      */
     @Builder
-    public Post(String title, String content, byte[] postImg) {
+    public Post(String title, String content, String postImgUrl) {
         this.title = title;
         this.content = content;
-        this.postImg = postImg;
+        this.postImgUrl = postImgUrl;
         this.viewCount = 0;
     }
 
@@ -71,12 +68,12 @@ public class Post extends BaseTimeEntity {
      * 게시글 수정 메서드
      * @param title 수정할 제목
      * @param content 수정할 내용
-     * @param postImg 수정할 이미지 데이터
+     * @param postImgUrl 수정할 이미지 데이터
      */
-    public void update(String title, String content, byte[] postImg) {
+    public void update(String title, String content, String postImgUrl) {
         this.title = title;
         this.content = content;
-        this.postImg = postImg;
+        this.postImgUrl = postImgUrl;
     }
 
     /**
@@ -103,8 +100,5 @@ public class Post extends BaseTimeEntity {
         this.likes.add(like);
         like.setPost(this);
     }
-
-
-
 
 }

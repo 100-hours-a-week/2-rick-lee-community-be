@@ -10,7 +10,6 @@ import lombok.Setter;
 
 /**
  * 회원가입 요청 DTO
- * 이메일 중복 검사는 Service 레이어에서 수행
  */
 @Getter
 @Setter
@@ -33,6 +32,6 @@ public class SignupRequestDto {
     @Size(min = 2, max = 10, message = "닉네임은 2자 이상, 10자 이하로 입력해주세요.")
     private String nickname;
 
-    // 프로필 이미지는 필수가 아님
-    private byte[] profileImg;
+    // 프로필 이미지 URL (S3에 업로드 후 URL을 저장)
+    private String profileImgUrl;
 }

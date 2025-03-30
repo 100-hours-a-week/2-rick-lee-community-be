@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,25 +38,33 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final LikeService likeService;
+    private final ImageService imageService;
 
     /**
      * 게시글 작성
      * @param userId 작성자 ID
      * @param requestDto 게시글 작성 요청 정보
+     * @param file 이미지 파일 (선택사항)
      * @return 생성된 게시글의 ID
      * @throws ResourceNotFoundException 사용자를 찾을 수 없는 경우
      */
     @Transactional
-    public Long createPost(Long userId, PostRequestDto requestDto) {
+    public Long createPost(Long userId, PostRequestDto requestDto, MultipartFile file) {
         // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("user", "id", userId));
+
+        // 이미지 업로드 (있는 경우)
+        String postImgUrl = null;
+        if (file != null && !file.isEmpty()) {
+            postImgUrl = imageService.uploadFile(file, "posts");
+        }
 
         // 게시글 엔티티 생성
         Post post = Post.builder()
                 .title(requestDto.getTitle())
                 .content(requestDto.getContent())
-                .postImg(requestDto.getPostImg())
+                .postImgUrl(postImgUrl)
                 .build();
 
         // 사용자와 게시글 연결
@@ -149,12 +158,13 @@ public class PostService {
      * @param userId 수정 요청자 ID
      * @param postId 수정할 게시글 ID
      * @param requestDto 게시글 수정 요청 정보
+     * @param file 이미지 파일 (선택사항)
      * @return 수정된 게시글 정보
      * @throws ResourceNotFoundException 게시글을 찾을 수 없는 경우
      * @throws UnauthorizedException 게시글 작성자가 아닌 경우
      */
     @Transactional
-    public Map<String, Object> updatePost(Long userId, Long postId, PostRequestDto requestDto) {
+    public Map<String, Object> updatePost(Long userId, Long postId, PostRequestDto requestDto, MultipartFile file) {
         // 게시글 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("post", "id", postId));
@@ -164,8 +174,20 @@ public class PostService {
             throw new UnauthorizedException("게시글 수정 권한이 없습니다.");
         }
 
+        // 이미지 처리
+        String postImgUrl = post.getPostImgUrl();
+        if (file != null && !file.isEmpty()) {
+            // 기존 이미지가 있으면 S3에서 삭제
+            if (postImgUrl != null && !postImgUrl.isEmpty()) {
+                imageService.deleteFile(postImgUrl);
+            }
+
+            // 새 이미지 업로드
+            postImgUrl = imageService.uploadFile(file, "posts");
+        }
+
         // 게시글 수정
-        post.update(requestDto.getTitle(), requestDto.getContent(), requestDto.getPostImg());
+        post.update(requestDto.getTitle(), requestDto.getContent(), postImgUrl);
         Post updatedPost = postRepository.save(post);
 
         // 응답 데이터 생성
@@ -173,7 +195,7 @@ public class PostService {
         response.put("post_id", updatedPost.getId());
         response.put("title", updatedPost.getTitle());
         response.put("content", updatedPost.getContent());
-        response.put("image_url", updatedPost.getPostImg() != null ? "이미지 데이터가 있음" : null);
+        response.put("image_url", updatedPost.getPostImgUrl());
         response.put("updated_at", updatedPost.getUpdatedAt());
 
         return response;
@@ -197,7 +219,10 @@ public class PostService {
             throw new UnauthorizedException("게시글 삭제 권한이 없습니다.");
         }
 
-        // 관련 데이터 삭제 전 처리 (필요시)
+        // 이미지가 있으면 S3에서 삭제
+        if (post.getPostImgUrl() != null && !post.getPostImgUrl().isEmpty()) {
+            imageService.deleteFile(post.getPostImgUrl());
+        }
 
         // 게시글 삭제
         postRepository.delete(post);
