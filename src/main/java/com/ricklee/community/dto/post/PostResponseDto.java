@@ -16,7 +16,7 @@ public class PostResponseDto {
     private Long postId;
     private String title;
     private String content;
-    private byte[] postImg;
+    private String postImgUrl; // BLOB -> URL로 변경
     private Integer viewCount;
     private String author;
     private Long commentCount;
@@ -34,7 +34,7 @@ public class PostResponseDto {
         this.postId = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
-        this.postImg = post.getPostImg();
+        this.postImgUrl = post.getPostImgUrl();
         this.viewCount = post.getViewCount();
         this.author = post.getUser().getNickname();
         this.commentCount = commentCount;

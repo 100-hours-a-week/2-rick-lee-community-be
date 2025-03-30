@@ -17,13 +17,13 @@ public class PostDetailResponseDto {
     private Long postId;
     private String title;
     private String content;
-    private byte[] postImg;
+    private String postImgUrl; // BLOB -> URL로 변경
     private Integer viewCount;
 
     // 작성자 정보
     private Long authorId;
     private String authorNickname;
-    private byte[] authorProfileImg;
+    private String authorProfileImgUrl; // 작성자 프로필 이미지도 URL로 변경
 
     // 통계 정보
     private Long commentCount;
@@ -48,12 +48,12 @@ public class PostDetailResponseDto {
         this.postId = post.getId();
         this.title = post.getTitle();
         this.content = post.getContent();
-        this.postImg = post.getPostImg();
+        this.postImgUrl = post.getPostImgUrl();
         this.viewCount = post.getViewCount();
 
         this.authorId = post.getUser().getId();
         this.authorNickname = post.getUser().getNickname();
-        this.authorProfileImg = post.getUser().getProfileImg();
+        this.authorProfileImgUrl = post.getUser().getProfileImgUrl();
 
         this.commentCount = commentCount;
         this.likeCount = likeCount;

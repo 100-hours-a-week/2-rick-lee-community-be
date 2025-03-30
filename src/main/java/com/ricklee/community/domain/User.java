@@ -29,11 +29,11 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private String nickname;
 
-    @Column(name = "profile_img")
-    @Lob
-    private byte[] profileImg;
+    // 새로 추가된 S3 이미지 URL 필드
+    @Column(name = "profile_img_url")
+    private String profileImgUrl;
 
-    // 양방향 관계 설정 (필요에 따라 주석 해제하여 사용)
+    // 양방향 관계 설정 (기존 코드)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
 
@@ -48,24 +48,24 @@ public class User extends BaseTimeEntity {
      * @param email 사용자 이메일 (로그인 ID)
      * @param password 암호화된 비밀번호
      * @param nickname 사용자 닉네임
-     * @param profileImg 프로필 이미지 데이터 (선택 사항)
+     * @param profileImgUrl 프로필 이미지 데이터 (선택 사항)
      */
     @Builder
-    public User(String email, String password, String nickname, byte[] profileImg) {
+    public User(String email, String password, String nickname, String profileImgUrl) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-        this.profileImg = profileImg;
+        this.profileImgUrl = profileImgUrl;
     }
 
     /**
-     * 회원 정보 수정 메서드
-     * @param nickname 새로운 닉네임
-     * @param profileImg 새로운 프로필 이미지 데이터
+     * 회원 정보 수정 메서드 (프로필 이미지 URL 업데이트)
      */
-    public void updateProfile(String nickname, byte[] profileImg) {
+    public void updateProfile(String nickname, String profileImgUrl) {
         this.nickname = nickname;
-        this.profileImg = profileImg;
+        if (profileImgUrl != null) {
+            this.profileImgUrl = profileImgUrl;
+        }
     }
 
     /**

@@ -9,8 +9,10 @@ import com.ricklee.community.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,12 +33,21 @@ public class PostController {
      * 게시글 작성 API
      * POST /posts
      */
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, Long>>> createPost(
             @RequestHeader("Authorization") String token,
-            @Valid @RequestBody PostRequestDto requestDto) {
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+
         Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
-        Long postId = postService.createPost(userId, requestDto);
+
+        // DTO 생성
+        PostRequestDto requestDto = new PostRequestDto();
+        requestDto.setTitle(title);
+        requestDto.setContent(content);
+
+        Long postId = postService.createPost(userId, requestDto, file);
 
         Map<String, Long> data = new HashMap<>();
         data.put("post_id", postId);
@@ -62,16 +73,25 @@ public class PostController {
     }
 
     /**
-     * 게시글 수정 API
+     * 게시글 수정 API (멀티파트 방식)
      * PUT /posts/{postId}
      */
-    @PutMapping("/{postId}")
+    @PutMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, Object>>> updatePost(
             @RequestHeader("Authorization") String token,
             @PathVariable Long postId,
-            @Valid @RequestBody PostRequestDto requestDto) {
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+
         Long userId = userService.getUserIdFromToken(token.replace("Bearer ", ""));
-        Map<String, Object> updatedPost = postService.updatePost(userId, postId, requestDto);
+
+        // DTO 생성
+        PostRequestDto requestDto = new PostRequestDto();
+        requestDto.setTitle(title);
+        requestDto.setContent(content);
+
+        Map<String, Object> updatedPost = postService.updatePost(userId, postId, requestDto, file);
 
         return ResponseEntity
                 .ok(ApiResponse.success("post_updated", updatedPost));
