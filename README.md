@@ -48,6 +48,7 @@ JWT(Json Web Token)를 활용해 토큰 기반 인증 시스템을 구축하였�
   - 댓글 생성, 조회, 삭제
 <br/>
 <br/>
+
 ## 🏷️ ERD
 
 ![2- rick-lee-ERD](https://github.com/user-attachments/assets/e2e4667d-f077-42d5-8f17-61a21fb18f8f)
